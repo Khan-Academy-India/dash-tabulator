@@ -1,6 +1,6 @@
 from dash import Dash, Input, Output
 import dash_mantine_components as dmc
-from kai_dash_tabulator import Tabulator
+from dash_tabulator import Tabulator
 
 app = Dash(__name__)
 
