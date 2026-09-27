@@ -38,7 +38,7 @@ pip install "git+ssh://git@github.com/Khan-Academy-India/dash-tabulator.git@main
 from dash import Dash, Input, Output, html
 import dash_mantine_components as dmc
 
-from kai_dash_tabulator import Tabulator
+from dash_tabulator import Tabulator
 
 app = Dash(__name__)
 
@@ -96,7 +96,7 @@ The value should be an array of numbers. The formatter produces a small SVG and 
 
 ## Mantine theme
 
-The component uses the `kai-tabulator` theme automatically. It reads Mantine CSS variables such as `--mantine-color-body`, `--mantine-color-text`, `--mantine-color-default-border`, `--mantine-font-family`, and radius/spacing variables, with sensible fallbacks when Dash Mantine Components is not present.
+The component uses the `dash-tabulator` theme automatically. It reads Mantine CSS variables such as `--mantine-color-body`, `--mantine-color-text`, `--mantine-color-default-border`, `--mantine-font-family`, and radius/spacing variables, with sensible fallbacks when Dash Mantine Components is not present.
 
 There is no runtime dependency on `dash-mantine-components`.
 
