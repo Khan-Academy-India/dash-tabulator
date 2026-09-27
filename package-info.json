@@ -1,0 +1,5 @@
+{
+  "name": "kai-dash-tabulator",
+  "version": "0.1.0",
+  "description": "Minimal Dash wrapper for Tabulator with a Mantine-compatible default theme"
+}
