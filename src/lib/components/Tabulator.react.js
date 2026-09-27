@@ -32,7 +32,7 @@ const sparklineFormatter = (cell) => {
     .join(" ");
 
   return `
-    <svg class="kai-tabulator-sparkline" viewBox="0 0 ${width} ${height}" aria-hidden="true">
+    <svg class="dash-tabulator-sparkline" viewBox="0 0 ${width} ${height}" aria-hidden="true">
       <polyline points="${points}" fill="none" vector-effect="non-scaling-stroke"></polyline>
     </svg>
   `;
@@ -171,7 +171,7 @@ export default function Tabulator({
     });
   }, [resetToken]);
 
-  const classes = ["kai-tabulator", className].filter(Boolean).join(" ");
+  const classes = ["dash-tabulator", className].filter(Boolean).join(" ");
 
   return (
     <div
