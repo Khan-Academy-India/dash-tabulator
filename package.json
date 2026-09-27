@@ -1,0 +1,32 @@
+{
+  "name": "kai-dash-tabulator",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Minimal Dash wrapper for Tabulator",
+  "main": "kai_dash_tabulator/kai_dash_tabulator.min.js",
+  "scripts": {
+    "build:js": "webpack --mode production",
+    "build:backends": "dash-generate-components ./src/lib/components kai_dash_tabulator -p package-info.json --ignore \\.test\\.",
+    "build": "npm run build:js && npm run build:backends"
+  },
+  "dependencies": {
+    "tabulator-tables": "6.5.0"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.28.0",
+    "@babel/preset-env": "^7.28.0",
+    "@babel/preset-react": "^7.27.0",
+    "babel-loader": "^10.0.0",
+    "css-loader": "^7.1.2",
+    "prop-types": "^15.8.1",
+    "react": "^18.3.1",
+    "react-docgen": "^5.4.3",
+    "react-dom": "^18.3.1",
+    "style-loader": "^4.0.0",
+    "webpack": "^5.101.0",
+    "webpack-cli": "^6.0.1"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
