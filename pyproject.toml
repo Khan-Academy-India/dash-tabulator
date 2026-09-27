@@ -13,7 +13,7 @@ dependencies = ["dash>=3.0"]
 include = ["kai_dash_tabulator*"]
 
 [tool.setuptools.package-data]
-kai_dash_tabulator = ["*.js", "*.js.map", "*.json"]
+kai_dash_tabulator = ["*.js", "*.js.map", "*.css", "*.json"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
