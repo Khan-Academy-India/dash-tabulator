@@ -1,4 +1,4 @@
-from kai_dash_tabulator import Tabulator
+from dash_tabulator import Tabulator
 
 
 def test_component_namespace_and_props():
@@ -10,7 +10,7 @@ def test_component_namespace_and_props():
         movableColumns=True,
         resetToken=0,
     )
-    assert grid._namespace == "kai_dash_tabulator"
+    assert grid._namespace == "dash_tabulator"
     assert grid._type == "Tabulator"
     assert grid.data[0]["students"] == 10
     assert grid.columns[0]["headerFilter"] is True
