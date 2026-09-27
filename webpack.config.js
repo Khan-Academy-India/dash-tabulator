@@ -4,9 +4,9 @@ module.exports = {
   mode: "production",
   entry: "./src/lib/index.js",
   output: {
-    path: path.resolve(__dirname, "kai_dash_tabulator"),
-    filename: "kai_dash_tabulator.min.js",
-    library: "kai_dash_tabulator",
+    path: path.resolve(__dirname, "dash_tabulator"),
+    filename: "dash_tabulator.min.js",
+    library: "dash_tabulator",
     libraryTarget: "window",
   },
   devtool: "source-map",
