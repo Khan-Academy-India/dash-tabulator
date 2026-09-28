@@ -57,50 +57,60 @@ const normalizeColumns = (columns = []) => columns.map(mapColumn);
 const compactFilters = (filters = []) =>
   filters.map(({field, type, value}) => ({field, type, value}));
 
-const emit = (setProps, payload) => {
-  if (setProps) {
-    setProps(payload);
-  }
-};
-
-export default function Tabulator({
-  id,
-  data,
-  columns,
-  groupBy,
-  height,
-  layout,
-  movableColumns,
-  resetToken,
-  className,
-  style,
-  setProps,
-}) {
+/**
+ * A thin Dash wrapper around Tabulator: header filters, grouped headers,
+ * row grouping, totals, sparkline cells and a reset action.
+ */
+export default function Tabulator(props) {
+  const {id, data, columns, groupBy, height, maxHeight, layout, movableColumns, resetToken,
+    className, style} = props;
   const elementRef = useRef(null);
   const tableRef = useRef(null);
-  const declaredColumnLayoutRef = useRef(null);
+  const builtRef = useRef(false);
   const lastResetTokenRef = useRef(resetToken);
+  // Tabulator events outlive renders; read the latest props through a ref.
+  const latestRef = useRef(props);
+  latestRef.current = props;
+
+  const emit = (payload) => {
+    if (latestRef.current.setProps) {
+      latestRef.current.setProps(payload);
+    }
+  };
 
   useEffect(() => {
     if (!elementRef.current) {
       return undefined;
     }
 
+    const initial = latestRef.current;
     const table = new TabulatorEngine(elementRef.current, {
-      data: data || [],
-      columns: normalizeColumns(columns || []),
-      groupBy: groupBy || false,
-      height: height || "500px",
-      layout: layout || "fitColumns",
-      movableColumns: movableColumns !== false,
+      data: initial.data || [],
+      columns: normalizeColumns(initial.columns || []),
+      groupBy: initial.groupBy || false,
+      height: initial.maxHeight ? undefined : initial.height || "500px",
+      maxHeight: initial.maxHeight || undefined,
+      layout: initial.layout || "fitColumns",
+      movableColumns: initial.movableColumns !== false,
       columnCalcs: "both",
     });
-
     tableRef.current = table;
 
+    // Tabulator rejects setColumns/replaceData until the table is built, so
+    // prop changes that arrive earlier are applied here instead.
     table.on("tableBuilt", () => {
-      declaredColumnLayoutRef.current = table.getColumnLayout();
-      emit(setProps, {
+      builtRef.current = true;
+      const latest = latestRef.current;
+      if (latest.columns !== initial.columns) {
+        table.setColumns(normalizeColumns(latest.columns || []));
+      }
+      if (latest.data !== initial.data) {
+        table.replaceData(latest.data || []);
+      }
+      if (latest.groupBy !== initial.groupBy) {
+        table.setGroupBy(latest.groupBy || false);
+      }
+      emit({
         columnState: table.getColumnLayout(),
         filterState: compactFilters(table.getFilters(true)),
         eventData: {type: "tableBuilt"},
@@ -108,102 +118,94 @@ export default function Tabulator({
     });
 
     table.on("columnMoved", () => {
-      emit(setProps, {
-        columnState: table.getColumnLayout(),
-        eventData: {type: "columnMoved"},
-      });
+      emit({columnState: table.getColumnLayout(), eventData: {type: "columnMoved"}});
     });
 
     table.on("dataFiltered", (filters, rows) => {
-      emit(setProps, {
+      emit({
         filterState: compactFilters(filters),
         eventData: {type: "dataFiltered", rowCount: rows.length},
       });
     });
 
     return () => {
+      builtRef.current = false;
       table.destroy();
       tableRef.current = null;
     };
   }, []);
 
   useEffect(() => {
-    if (tableRef.current) {
+    if (builtRef.current) {
       tableRef.current.replaceData(data || []);
     }
   }, [data]);
 
   useEffect(() => {
-    if (!tableRef.current) {
+    if (!builtRef.current) {
       return;
     }
-
-    tableRef.current.setColumns(normalizeColumns(columns || []));
-    declaredColumnLayoutRef.current = tableRef.current.getColumnLayout();
-    emit(setProps, {columnState: tableRef.current.getColumnLayout()});
+    const table = tableRef.current;
+    table.setColumns(normalizeColumns(columns || []));
+    emit({columnState: table.getColumnLayout()});
   }, [columns]);
 
   useEffect(() => {
-    if (tableRef.current) {
+    if (builtRef.current) {
       tableRef.current.setGroupBy(groupBy || false);
     }
   }, [groupBy]);
 
   useEffect(() => {
-    if (!tableRef.current || resetToken === lastResetTokenRef.current) {
+    if (!builtRef.current || resetToken === lastResetTokenRef.current) {
       return;
     }
-
     lastResetTokenRef.current = resetToken;
-    tableRef.current.clearFilter(true);
-    tableRef.current.clearSort();
-
-    if (declaredColumnLayoutRef.current) {
-      tableRef.current.setColumnLayout(declaredColumnLayoutRef.current);
-    }
-
-    tableRef.current.setGroupBy(groupBy || false);
-
-    emit(setProps, {
-      columnState: tableRef.current.getColumnLayout(),
-      filterState: [],
-      eventData: {type: "reset"},
-    });
+    const table = tableRef.current;
+    table.clearFilter(true);
+    table.clearSort();
+    // Re-applying the declared columns restores order and widths; Tabulator's
+    // setColumnLayout cannot restore grouped headers.
+    table.setColumns(normalizeColumns(columns || []));
+    table.setGroupBy(groupBy || false);
+    emit({columnState: table.getColumnLayout(), filterState: [], eventData: {type: "reset"}});
   }, [resetToken]);
 
   const classes = ["dash-tabulator", className].filter(Boolean).join(" ");
 
-  return (
-    <div
-      id={id}
-      className={classes}
-      style={style}
-      ref={elementRef}
-    />
-  );
+  return <div id={id} className={classes} style={style} ref={elementRef} />;
 }
 
 Tabulator.propTypes = {
+  /** The ID used to identify this component in Dash callbacks. */
   id: PropTypes.string,
+  /** Array of row objects. */
   data: PropTypes.arrayOf(PropTypes.object),
+  /** Tabulator column definitions; nested `columns` create grouped headers. */
   columns: PropTypes.arrayOf(PropTypes.object),
-  groupBy: PropTypes.oneOfType([
-    PropTypes.string,
-    PropTypes.arrayOf(PropTypes.string),
-  ]),
+  /** Field name or ordered list of field names for row grouping. */
+  groupBy: PropTypes.oneOfType([PropTypes.string, PropTypes.arrayOf(PropTypes.string)]),
+  /** Fixed grid height. Ignored when `maxHeight` is set. */
   height: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+  /** Grow with the rows up to this height, then scroll. */
+  maxHeight: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+  /** Tabulator layout mode. */
   layout: PropTypes.string,
+  /** Allow dragging columns to reorder them. */
   movableColumns: PropTypes.bool,
-  resetToken: PropTypes.oneOfType([
-    PropTypes.string,
-    PropTypes.number,
-    PropTypes.bool,
-  ]),
+  /** Change this value to clear filters/sorts and restore the declared columns and grouping. */
+  resetToken: PropTypes.oneOfType([PropTypes.string, PropTypes.number, PropTypes.bool]),
+  /** Read-only: the current column layout. */
   columnState: PropTypes.array,
+  /** Read-only: the current filters, including header filters. */
   filterState: PropTypes.array,
+  /** Read-only: the latest table event, e.g. {type: "dataFiltered", rowCount}. */
   eventData: PropTypes.object,
+  /** Extra CSS class for the container. */
   className: PropTypes.string,
+  /** Inline styles for the container. */
   style: PropTypes.object,
+  /** Dash-assigned callback that updates props. */
   setProps: PropTypes.func,
 };
 

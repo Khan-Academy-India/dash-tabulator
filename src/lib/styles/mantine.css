@@ -97,6 +97,12 @@
   font-weight: 600;
 }
 
+.dash-tabulator .tabulator-group span {
+  margin-left: 0.5rem;
+  color: var(--dash-tabulator-dimmed);
+  font-weight: 400;
+}
+
 .dash-tabulator .tabulator-placeholder {
   background: var(--dash-tabulator-body);
   color: var(--dash-tabulator-dimmed);

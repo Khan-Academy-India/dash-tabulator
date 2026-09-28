@@ -1,30 +1,24 @@
-from .Tabulator import Tabulator
+import json as _json
+import os as _os
 
-__version__ = "0.1.0"
+from ._imports_ import *  # noqa: F401,F403
+from ._imports_ import __all__
 
+with open(_os.path.join(_os.path.dirname(__file__), "package-info.json")) as _f:
+    __version__ = _json.load(_f)["version"]
+
+# Tabulator and its CSS are bundled into dash_tabulator.min.js, so Dash can
+# serve everything locally (its default) without reaching a CDN.
 _js_dist = [
+    {"relative_package_path": "dash_tabulator.min.js", "namespace": "dash_tabulator"},
     {
-        "external_url": "https://unpkg.com/tabulator-tables@6.5.0/dist/js/tabulator.min.js",
+        "relative_package_path": "dash_tabulator.min.js.map",
         "namespace": "dash_tabulator",
-    },
-    {
-        "relative_package_path": "dash_tabulator.min.js",
-        "namespace": "dash_tabulator",
+        "dynamic": True,
     },
 ]
+_css_dist = []
 
-_css_dist = [
-    {
-        "external_url": "https://unpkg.com/tabulator-tables@6.5.0/dist/css/tabulator.min.css",
-        "namespace": "dash_tabulator",
-    },
-    {
-        "relative_package_path": "mantine.css",
-        "namespace": "dash_tabulator",
-    },
-]
-
-Tabulator._js_dist = _js_dist
-Tabulator._css_dist = _css_dist
-
-__all__ = ["Tabulator"]
+for _component in __all__:
+    setattr(locals()[_component], "_js_dist", _js_dist)
+    setattr(locals()[_component], "_css_dist", _css_dist)
