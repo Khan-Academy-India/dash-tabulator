@@ -20,17 +20,13 @@ Tabulator remains responsible for filtering, sorting, grouping, aggregation, vir
 
 ## Install
 
-For an internal project with GitHub access:
+Install a tagged release. The archive URL needs no `git` binary, which keeps slim Docker images working:
 
 ```bash
-pip install "git+https://github.com/Khan-Academy-India/dash-tabulator.git@main"
+pip install "dash-tabulator @ https://github.com/Khan-Academy-India/dash-tabulator/archive/refs/tags/v0.2.0.tar.gz"
 ```
 
-or with SSH:
-
-```bash
-pip install "git+ssh://git@github.com/Khan-Academy-India/dash-tabulator.git@main"
-```
+Tabulator 6.5.0 and its CSS are bundled into the package; nothing is fetched from a CDN at runtime.
 
 ## Usage
 
@@ -107,7 +103,8 @@ There is no runtime dependency on `dash-mantine-components`.
 | `data` | Array of row objects |
 | `columns` | Tabulator column definitions; must be JSON serializable |
 | `groupBy` | Field name or ordered list of fields for row grouping |
-| `height` | Grid height; defaults to `500px` |
+| `height` | Fixed grid height; defaults to `500px`. Ignored when `maxHeight` is set |
+| `maxHeight` | Grow with the rows up to this height, then scroll |
 | `layout` | Tabulator layout mode; defaults to `fitColumns` |
 | `movableColumns` | Enables column drag/reordering; defaults to `True` |
 | `resetToken` | Change this value to clear filters/sorts and restore declared columns/grouping |
@@ -121,10 +118,10 @@ The wrapper does not expose arbitrary JavaScript functions or the full Tabulator
 ## Development
 
 ```bash
-python -m pip install "dash>=3"
+python -m pip install "dash>=3" pyyaml pytest
 npm install
 npm run build
-python -m build
+pytest -q
 ```
 
-Generated Dash Python component files and the production JavaScript bundle are committed so consumers only need Python/pip when installing the package.
+`src/lib/components/Tabulator.react.js` is the source of truth. `npm run build` bundles it with Tabulator into `dash_tabulator/dash_tabulator.min.js` and regenerates `dash_tabulator/Tabulator.py`; commit both so consumers only need pip. Check changes in a browser (for example `python examples/basic.py`): the Python tests cannot catch JavaScript errors.
